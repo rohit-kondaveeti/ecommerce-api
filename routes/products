@@ -1,0 +1,52 @@
+const router = require('express').Router();
+const Product = require('./../models/products');
+
+//All Products
+router.get('/', async (req, res) => {
+    const products = await Product.find().sort({_id:-1});
+    res.status(200).json(products);
+})
+
+// Products by ID
+router.get('/:id', async (req, res) => {
+    const products = await Product.find({_id: req.params.id});
+    res.status(200).json(products);
+});
+
+//create a product
+router.post('/create', async (req, res) => {
+   const newProduct = new Product({
+       name : req.body.name,
+       quantity : req.body.quantity
+   })
+   try{
+    const createdProduct = await newProduct.save();
+    const response = {data : { product : newProduct}}
+    res.status(200).json(response);
+   }
+   catch(err){
+      res.status(500).json(err)
+   }
+});
+
+//Update Product
+router.put('/:id', async (req, res) => {
+    const result = Product.updateOne({_id:req.params.id}, {$set: {quantity: req.body.quantity } }, function(err, res) {
+      if (err) throw err;
+    });
+    res.status(200).json('Product Quantity Updated.');
+});
+
+//Delete Product
+router.delete('/:id', async (req, res) => {
+       const result = await Product.deleteOne({ _id: req.params.id });
+       let response = '';
+       if (result.deletedCount === 1) {
+         response = "Product Deleted Successfully.";
+       } else {
+         response = "No Products With this id.";
+       }
+    res.status(200).json(response);
+});
+
+module.exports = router;
